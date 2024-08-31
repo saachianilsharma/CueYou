@@ -7,6 +7,7 @@ import time
 from prompt import PromptWidget
 from PyQt6.QtGui import QImage, QPixmap
 from deepface import DeepFace  
+from PyQt6.QtGui import QFont
 #from fer import FER
 
 
@@ -186,6 +187,7 @@ class VideoMonitorPage(QWidget):
         self.timer = QTimer()  # Create a QTimer
 
     def initUI(self):
+        self.setFont(QFont("Source Sans Pro", 12))
         layout = QVBoxLayout()
 
         """ 

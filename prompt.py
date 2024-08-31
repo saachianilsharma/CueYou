@@ -10,8 +10,7 @@ class PromptWidget(QWidget):
         
         layout = QVBoxLayout()
         self.label = QLabel(message)
-        self.label.setFont(QFont('Arial', 12))
-        self.label.setStyleSheet("color: black; padding: 10px; background-color: rgba(178, 178, 178, 150); border-radius: 10px;")
+        self.label.setStyleSheet("""color: black; font-family: 'Source Sans Pro'; font-size: 20px; padding: 10px; background-color: rgba(178, 178, 178, 150); border-radius: 15px;""")
         self.label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         layout.addWidget(self.label)
         self.setLayout(layout)

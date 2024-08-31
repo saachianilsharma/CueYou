@@ -4,17 +4,38 @@ from PyQt6.QtCore import Qt
 from audiomonitor import AudioMonitorPage
 from videomonitor import VideoMonitorPage
 from prompt import PromptWidget
+import os
+import sys
+from database import get_user_by_token
 
 class CueSessionPage(QWidget):
-    def __init__(self):
+    def __init__(self,switch_page_callback,get_user_data_callback):
         super().__init__()
-        self.initUI()
+        
+        self.get_user_data_callback = get_user_data_callback
+        self.username = "Profile"
+        self.switch_page_callback = switch_page_callback
         self.prompt = PromptWidget() #single object to be passed as reference to audio and video classes
         self.audio_monitor = AudioMonitorPage(prompt_widget=self.prompt)
         self.video_monitor = VideoMonitorPage(prompt_widget=self.prompt)
-
+        self.initUI()
     def initUI(self):
-        
+        if hasattr(sys, '_MEIPASS'):
+            base_path = sys._MEIPASS
+        else:
+            base_path = os.path.abspath(".")
+        # Fetching user data using callback
+        """ user_data = self.get_user_data_callback()
+        if user_data:
+            self.username = user_data.get("name", "JaneDoe")
+        else:
+            self.username = "JaneDoe"
+            print("Could not fetch user data") """
+
+        # Accessing an individual image
+        illustrationpath = os.path.join(base_path, 'images', 'homepageillustration25-modified-small.png')
+        logopath = os.path.join(base_path, 'images', 'homepagelogo.png')
+        arrowpath = os.path.join(base_path, 'images', 'white-arrow.png').replace("\\", "/")
         #Main Layout
         main_layout = QGridLayout()
         #main_layout.setContentsMargins(10, 10, 10, 0)
@@ -23,7 +44,7 @@ class CueSessionPage(QWidget):
         #Left side layout for illustration
         
         illustration_label = QLabel(self)
-        illustration_pixmap = QPixmap('images/homepageillustration25-modified-small.png')  # Adjust path as needed
+        illustration_pixmap = QPixmap(illustrationpath)  # Adjust path as needed
         illustration_label.setPixmap(illustration_pixmap)
         illustration_label.setScaledContents(True)
         illustration_label.setFixedSize(329, 365)
@@ -32,7 +53,7 @@ class CueSessionPage(QWidget):
         
         # Logo
         logo_label = QLabel()
-        logo_pixmap = QPixmap("images/homepagelogo.png")
+        logo_pixmap = QPixmap(logopath)
         logo_label.setPixmap(logo_pixmap)
         logo_label.setScaledContents(True)
         logo_label.setFixedSize(184, 82)
@@ -40,7 +61,7 @@ class CueSessionPage(QWidget):
         
         # Welcome label
         welcome_label = QLabel("Welcome to CueYou!")
-        welcome_label.setFont(QFont('Georgia', 24))
+        welcome_label.setFont(QFont('Source Sans Pro', 24))
         welcome_label.setStyleSheet("color: #1D263B; padding: 5px; font-weight: bold;")
         welcome_label.setAlignment(Qt.AlignmentFlag.AlignCenter)
         
@@ -84,12 +105,27 @@ class CueSessionPage(QWidget):
         """)
         self.end_button.setDisabled(True)
 
+        #profile page button
+        
+        self.profile = QPushButton(self.username) 
+        self.profile.clicked.connect(lambda: self.switch_page_callback(1)) # switch to profile page
+        self.profile.setStyleSheet("""
+            QPushButton {
+                background-color: white;
+                color: #1D263B;
+                border-radius: 15px;
+                padding: 5px 20px;
+                font-size: 15px;
+                border: 1px solid #1D263B;
+            }
+        """)
+       
+
         self.dropdown = QComboBox()
         self.dropdown.addItems(["Audio", "Video", "Both"])
         self.dropdown.setFixedHeight(self.start_button.sizeHint().height())
         #self.dropdown.setStyleSheet("background-color: #1D263B;border-radius: 15px; color: white;padding: 10px 20px; font-size: 16px;")
-        self.dropdown.setStyleSheet(
-        """
+        stylesheettext="""
             QComboBox {
                 
                 border-radius: 15px;
@@ -113,7 +149,7 @@ class CueSessionPage(QWidget):
             }
             QComboBox::down-arrow {
                 width: 10px;
-                image: url(images/white-arrow.png);
+                image: url("""+str(arrowpath)+""");
                 height: 10px;
             }
             QComboBox QAbstractItemView {
@@ -122,7 +158,9 @@ class CueSessionPage(QWidget):
                 selection-background-color: #003C8A;  /* Background color for selected item */
                 selection-color: white;  /* Text color for selected item */
             }
-        """)
+        """
+        #print(stylesheettext)
+        self.dropdown.setStyleSheet(stylesheettext)
         
 
         
@@ -137,20 +175,37 @@ class CueSessionPage(QWidget):
 
         # Adding widgets to main layout
         main_layout.addWidget(illustration_label, 0, 0, 5, 1, Qt.AlignmentFlag.AlignLeft)
-        main_layout.addWidget(logo_label, 0, 1, 1, 1, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(welcome_label, 1, 1, 1, 1, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter)
-        main_layout.addLayout(button_layout, 2, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
-        main_layout.addWidget(self.dropdown, 3, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(self.profile, 0, 1, 1, 1, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignRight)
+        main_layout.addWidget(logo_label, 1, 1, 1, 1, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(welcome_label, 2, 1, 1, 1, Qt.AlignmentFlag.AlignTop | Qt.AlignmentFlag.AlignCenter)
+        main_layout.addLayout(button_layout, 3, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
+        main_layout.addWidget(self.dropdown, 4, 1, 1, 1, Qt.AlignmentFlag.AlignCenter)
         #main_layout.setRowStretch(1, 0)
         main_layout.setColumnStretch(2,0)
-        main_layout.setRowStretch(0, 2)  # For the illustration row
-        main_layout.setRowStretch(1, 2)  # For the welcome label row
-        main_layout.setRowStretch(2, 0)  # For the buttons row
+        main_layout.setRowStretch(0, 0)  # For the illustration row
+        main_layout.setRowStretch(1, 0)  # For the welcome label row
+        main_layout.setRowStretch(2, 1)  # For the buttons row
         main_layout.setRowStretch(3, 0)  # For the dropdown row
         main_layout.setRowStretch(4, 1)  # Add space below if needed
         self.setLayout(main_layout)
         #self.setFixedSize(self.sizeHint())
         #self.setFixedSize(710, 400)
+        self.update_user_data()  # Load user data when initializing UI
+    
+    def update_user_data(self):
+        """Update UI elements with the user's information."""
+        user_data = self.get_user_data_callback()
+        print("update_user_data called , user = ", user_data)
+        if user_data:
+            self.username = user_data.get('name', 'JaneDoe')
+            
+            #self.username_label.setText(f"Welcome, {username}!")
+            #self.profile_button.setText(f"Profile: {username}")
+        else:
+            self.profile.setText("JaneDoe")
+            print("No user data available to update CueSessionPage.")
+        self.profile.setText(self.username.split(' ', 1)[0])
+
 
     def display_prompt(self, message):
         #self.prompt_label.setText(message)
